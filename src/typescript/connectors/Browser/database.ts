@@ -4,6 +4,7 @@ import Dexie from 'dexie'
 import log from '../../liascript/log'
 
 import { Record } from '../Base/index'
+import {API_ENDPOINTS, APP_URL} from '../../../constants/constants';
 
 if (process.env.NODE_ENV === 'development') {
   // @ts-ignore
@@ -11,7 +12,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 class LiaDB {
-  private dbIndex: Dexie
+  dbIndex: Dexie
 
   private db: any
   private version: number
@@ -254,7 +255,7 @@ class LiaDB {
   async storeIndex(data: any) {
     if (!this.dbIndex.isOpen()) {
       log.warn('DB: storeIndex ... db is closed')
-      return
+      return;
     }
 
     const date = new Date()
@@ -285,13 +286,15 @@ class LiaDB {
 
       log.info('storing new version to index', item)
 
-      await this.db.offline.put({
-        id: 0,
-        version: data.version,
-        data: data,
-        created: date.getTime(),
-        misc: {},
-      })
+      if (this.db?.offline) {
+        await this.db.offline.put({
+          id: 0,
+          version: data.version,
+          data: data,
+          created: date.getTime(),
+          misc: {},
+        })
+      }
     } else if (item.data[data.version].version !== data.definition.version) {
       item.data[data.version] = data.definition
       item.data[data.version]['title'] = data.title
@@ -301,17 +304,31 @@ class LiaDB {
       let db = this.open_(data.readme)
       await db.open()
 
-      await db['offline'].put({
-        id: 0,
-        version: data.version,
-        data: data,
-        created: date.getTime(),
-        misc: {},
-      })
+      if (db?.['offline']) {
+        await db['offline'].put({
+          id: 0,
+          version: data.version,
+          data: data,
+          created: date.getTime(),
+          misc: {},
+        })
+      }
     }
 
-    this.dbIndex['courses'].put(item).then(function (result: any) {
-      log.info('DB: storeIndex', result)
+    const result = await this
+      .dbIndex['courses']
+      .put(item)
+
+    log.info('DB: storeIndex', result)
+
+    const userId = localStorage.getItem('userId')
+
+    await fetch(`${API_ENDPOINTS.SAVE_STATE}?userId=${userId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
     })
   }
 

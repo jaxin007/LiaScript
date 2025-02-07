@@ -1,6 +1,6 @@
 import * as Lia from '../../typescript/liascript/index'
 
-import('../../typescript/connectors/Browser/index').then(function (Browser) {
+import('../../typescript/connectors/Browser/index').then(async function (Browser) {
   const ua = window.navigator.userAgent
 
   if (ua.indexOf('Trident/') > 0 || ua.indexOf('MSIE ') > 0) {
@@ -21,5 +21,6 @@ import('../../typescript/connectors/Browser/index').then(function (Browser) {
       true, // allowSync
       debug
     )
+    await app.saveStateToIndexDB();
   }
 })

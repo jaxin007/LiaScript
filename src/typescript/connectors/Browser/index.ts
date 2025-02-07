@@ -4,7 +4,7 @@ import * as DB from './database'
 import * as Base from '../Base/index'
 
 class Connector extends Base.Connector {
-  private database: DB.LiaDB
+  database: DB.LiaDB
 
   constructor() {
     super()

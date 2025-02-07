@@ -28,6 +28,7 @@ import Torrent from './service/Torrent'
 // ----------------------------------------------------------------------------
 // GLOBAL INITIALIZATION
 import * as GLOBALS from './init'
+import {API_ENDPOINTS, APP_URL} from '../../constants/constants';
 // TODO: CHECK window.LIA.defaultCourse functionality
 GLOBALS.initGlobals()
 window.LIA.injectResposivevoice = TTS.inject
@@ -163,6 +164,35 @@ export class LiaScript {
       message: null,
     })
   }
+
+  async saveStateToIndexDB () {
+    const userId = localStorage.getItem('userId')
+    const isSynced = localStorage.getItem('isSynced') === 'true';
+
+    if (!userId) {
+      console.error('No user id found, skipping sync process.');
+      return;
+    }
+
+    const response = await fetch(`${API_ENDPOINTS.GET_STATE}?userId=${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      console.error('Error fetching state:', response);  // Handle any errors
+      return;
+    }
+
+    const data = await response.json();
+
+    await this.connector.storeToIndex(data)
+
+    localStorage.setItem('isSynced', 'true');
+  }
+
 
   initEventSystem(
     elem: HTMLElement,

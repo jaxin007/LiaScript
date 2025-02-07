@@ -1,6 +1,6 @@
 import * as Lia from '../../typescript/liascript/index'
 
-import('../../typescript/connectors/Browser/index').then(function (Browser) {
+import('../../typescript/connectors/Browser/index').then(async function (Browser) {
   class Connector extends Browser.Connector {
     hasIndex(): boolean {
       return false
@@ -27,5 +27,7 @@ import('../../typescript/connectors/Browser/index').then(function (Browser) {
       false, // allowSync
       debug
     )
+
+    await app.saveStateToIndexDB();
   }
 })
